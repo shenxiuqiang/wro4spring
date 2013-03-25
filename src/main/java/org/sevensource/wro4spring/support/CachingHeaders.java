@@ -1,4 +1,4 @@
-package org.sevensource.wro4spring;
+package org.sevensource.wro4spring.support;
 
 import java.util.Date;
 

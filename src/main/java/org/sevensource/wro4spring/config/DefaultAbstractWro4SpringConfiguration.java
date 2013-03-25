@@ -33,4 +33,5 @@ public abstract class DefaultAbstractWro4SpringConfiguration extends AbstractWro
 	protected String getWroFile() {
 		return "classpath:wro.xml";
 	}
+	
 }

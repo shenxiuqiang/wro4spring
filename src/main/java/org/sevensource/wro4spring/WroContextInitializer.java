@@ -15,8 +15,8 @@ import ro.isdc.wro.manager.factory.WroManagerFactory;
 /**
  * An extended {@link WroServletContextListener}, which listens for Spring
  * Events instead of ServletContextEvents. {@link WroServletContextListener}
- * registers a {@link ServletContextAttributeHelper} with the
- * {@link ServletContext}<br>
+ * registers the effective {@link WroConfiguration} and the
+ * {@link WroManagerFactory} with the {@link ServletContext}<br>
  * This class should be instantiated by Spring and not by the ServletContainer
  * (ie. web.xml).
  * 

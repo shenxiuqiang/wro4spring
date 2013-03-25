@@ -1,4 +1,4 @@
-package org.sevensource.wro4spring.wro4j;
+package org.sevensource.wro4spring;
 
 import java.util.Enumeration;
 
@@ -15,7 +15,7 @@ import ro.isdc.wro.http.WroContextFilter;
 
 /**
  * Helper class to execute a method inside of a "Wro Transaction" and thereby
- * not using {@link WroContextFilter}
+ * not circumventing to need to install {@link WroContextFilter}
  * 
  * @author pgaschuetz
  * 
@@ -25,23 +25,45 @@ public class WroContextSupport implements ServletContextAware {
 	private ServletContext servletContext;
 	private WroFilterConfig wroFilterConfig;
 
-	public void doInContext(HttpServletRequest request,
-			HttpServletResponse response, ContextTemplate template) {
+	
+	/**
+	 * Callback interface for {@link WroContextSupport#doInContext(HttpServletRequest, HttpServletResponse, ContextTemplate)}.
+	 * @author pgaschuetz
+	 *
+	 * @param <T>
+	 */
+	public interface ContextTemplate<T> {
+		/**
+		 * this method will be executed and surrounded by a Wro {@link Context}
+		 * @see WroContextSupport#doInContext(HttpServletRequest, HttpServletResponse, ContextTemplate)
+		 * @return
+		 */
+		public T execute();
+	}
+	
+	
+	/**
+	 * sets a wro4j {@link Context}, executes {@link ContextTemplate#execute()} and unsets the {@link Context} again.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param template
+	 * @return the return value of the provided callback, see {@link ContextTemplate#execute()}
+	 */
+	public <T> T doInContext(HttpServletRequest request,
+			HttpServletResponse response, ContextTemplate<T> template) {
 
 		boolean removeContext = false;
-
 		try {
 			removeContext = setContext(request, response);
-
-			template.execute();
-
+			return template.execute();
 		} finally {
-			if (removeContext) {
+			if (removeContext)
 				unsetContext();
-			}
 		}
 	}
 
+	
 	/**
 	 * Create & Set a wro4j WebContext
 	 * 
@@ -81,10 +103,6 @@ public class WroContextSupport implements ServletContextAware {
 	@Override
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
-	}
-
-	public interface ContextTemplate {
-		public void execute();
 	}
 
 	

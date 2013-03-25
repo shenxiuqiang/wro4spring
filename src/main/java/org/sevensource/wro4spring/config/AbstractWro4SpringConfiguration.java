@@ -3,23 +3,32 @@ package org.sevensource.wro4spring.config;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.servlet.Filter;
 import javax.servlet.ServletContext;
 
-import org.sevensource.wro4spring.CachingHeaders;
+import org.sevensource.wro4spring.IWroModelAccessor;
 import org.sevensource.wro4spring.WroContextInitializer;
+import org.sevensource.wro4spring.WroContextSupport;
+import org.sevensource.wro4spring.WroDeliveryConfiguration;
+import org.sevensource.wro4spring.WroModelAccessor;
+import org.sevensource.wro4spring.support.CachingHeaders;
 import org.sevensource.wro4spring.wro4j.EnhancedGroupExtractor;
 import org.sevensource.wro4spring.wro4j.ModelResourceAlterationWatcher;
-import org.sevensource.wro4spring.wro4j.WroContextSupport;
 import org.sevensource.wro4spring.wro4j.development.GroupPerFileGroupExtractor;
 import org.sevensource.wro4spring.wro4j.development.GroupPerFileModelTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
+import org.springframework.web.context.WebApplicationContext;
 
+import ro.isdc.wro.config.Context;
 import ro.isdc.wro.config.jmx.WroConfiguration;
 import ro.isdc.wro.http.ConfigurableWroFilter;
+import ro.isdc.wro.http.support.ServletContextAttributeHelper;
 import ro.isdc.wro.manager.factory.BaseWroManagerFactory;
 import ro.isdc.wro.manager.factory.WroManagerFactory;
 import ro.isdc.wro.model.factory.WroModelFactory;
@@ -97,7 +106,7 @@ public abstract class AbstractWro4SpringConfiguration {
 	@Bean
 	public GroupExtractor groupExtractor() {
 		if(isDevelopment()) {
-			return new GroupPerFileGroupExtractor();
+			return new GroupPerFileGroupExtractor(wroDeliveryConfiguration());
 		} else {
 			return new EnhancedGroupExtractor();
 		}
@@ -126,10 +135,29 @@ public abstract class AbstractWro4SpringConfiguration {
 		return configureConfiguration(configuration);
 	}
 	
-	
+	/**
+	 * {@link WroContextSupport} is a support class, that allows to execute code
+	 * within a Wro {@link Context}, which is needed to access the wro
+	 * infrastructure from ie. within in a JSP tag. {@link WroContextSupport}
+	 * eliminates the need to install a {@link Filter ServletFilter} on <code>/*</code>
+	 * 
+	 * @return {@link WroContextSupport}
+	 */
 	@Bean
 	public WroContextSupport wroContextSupport() {
 		return new WroContextSupport();
+	}
+	
+	@Bean
+	public ServletContextAttributeHelper servletContextAttributeHelper(ServletContext servletContext) {
+		return new ServletContextAttributeHelper(servletContext);
+	}
+	
+	
+	@Bean
+	@Scope(value=WebApplicationContext.SCOPE_REQUEST, proxyMode=ScopedProxyMode.INTERFACES)
+	public IWroModelAccessor wroModelUtility() {
+		return new WroModelAccessor();
 	}
 	
 	/**
@@ -215,4 +243,7 @@ public abstract class AbstractWro4SpringConfiguration {
 	protected abstract String getWroFile();
 	protected abstract ProcessorsFactory createProcessorsFactory();
 	protected abstract boolean isDevelopment();
+
+	@Bean
+	public abstract WroDeliveryConfiguration wroDeliveryConfiguration();
 }

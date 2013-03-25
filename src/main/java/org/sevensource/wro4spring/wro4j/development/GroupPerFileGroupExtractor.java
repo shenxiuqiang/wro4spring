@@ -3,6 +3,7 @@ package org.sevensource.wro4spring.wro4j.development;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sevensource.wro4spring.WroDeliveryConfiguration;
 import org.sevensource.wro4spring.wro4j.EnhancedGroupExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,13 @@ public class GroupPerFileGroupExtractor extends EnhancedGroupExtractor {
 	@Inject
 	private WroModelFactory modelFactory;
 
+	
+	private final WroDeliveryConfiguration wroDeliveryConfiguration;
+
+	public GroupPerFileGroupExtractor(
+			WroDeliveryConfiguration wroDeliveryConfiguration) {
+		this.wroDeliveryConfiguration = wroDeliveryConfiguration;
+	}
 	
 	
 	/**
@@ -46,7 +54,6 @@ public class GroupPerFileGroupExtractor extends EnhancedGroupExtractor {
 		String groupName = null;
 		
 		while (process) {
-
 			String tempGroup = GroupPerFileModelTransformer.filenameToGroupname(uri);
 
 			if (logger.isDebugEnabled()) {
@@ -76,13 +83,18 @@ public class GroupPerFileGroupExtractor extends EnhancedGroupExtractor {
 	}
 	
 	
-	protected String getUri(final HttpServletRequest request) {
+	protected String getUri(HttpServletRequest request) {
 		String uri = request.getRequestURI();
 		String contextPath = request.getContextPath();
 
 		if (uri.startsWith(contextPath)) {
 			// Strip contextPath if present
 			uri = uri.substring(contextPath.length());
+		}
+		
+		if (uri.startsWith(wroDeliveryConfiguration.getUriPrefix())) {
+			// strip uriPrefix (ie. WroFilter mapping), if present
+			uri = uri.substring(wroDeliveryConfiguration.getUriPrefix().length());
 		}
 		return uri;
 	}
