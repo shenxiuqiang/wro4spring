@@ -8,10 +8,15 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.ServletContextAware;
 
 import ro.isdc.wro.config.Context;
 import ro.isdc.wro.http.WroContextFilter;
+import ro.isdc.wro.model.resource.ResourceType;
 
 /**
  * Helper class to execute a method inside of a "Wro Transaction" and thereby
@@ -24,6 +29,9 @@ public class WroContextSupport implements ServletContextAware {
 
 	private ServletContext servletContext;
 	private WroFilterConfig wroFilterConfig;
+	
+	
+	private final static Logger logger = LoggerFactory.getLogger(WroContextSupport.class);
 
 	
 	/**
@@ -82,6 +90,7 @@ public class WroContextSupport implements ServletContextAware {
 			return false;
 		}
 	}
+	
 
 	/**
 	 * unsets a previously set wro4j {@link Context}

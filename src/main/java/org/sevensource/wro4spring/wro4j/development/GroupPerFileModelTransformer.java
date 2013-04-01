@@ -42,8 +42,8 @@ public class GroupPerFileModelTransformer implements Transformer<WroModel> {
 				group = new Group(groupName);
 				developmentModel.addGroup(group);
 			}
-			
-			group.addResource(resource);		
+
+			group.addResource(resource);
 		}
 		
 		if (logger.isDebugEnabled()) {
