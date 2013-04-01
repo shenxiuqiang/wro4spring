@@ -3,8 +3,10 @@ package org.sevensource.wro4spring;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import ro.isdc.wro.http.WroFilter;
@@ -19,6 +21,9 @@ public class WroDeliveryConfiguration implements ServletContextAware {
 	private String uriPrefix;
 	private List<String> cdnDomains;
 	private boolean development = false;
+	
+	private volatile String deliveryPrefix = null;
+	private volatile String localPathPrefix = null;
 	
 	public String getUriPrefix() {
 		return uriPrefix;
@@ -60,6 +65,34 @@ public class WroDeliveryConfiguration implements ServletContextAware {
 	
 	public String getContextPath() {
 		return contextPath;
+	}
+	
+	public String encodeDeliveryInformationIntoUri(String uri) {
+		return deliveryPrefix + uri;
+	}
+	
+	public String encodeLocalPathPrefixIntoUri(String uri, boolean includeServletContextPath) {
+		return includeServletContextPath ? localPathPrefix + uri : getUriPrefix() + uri;
+	}
+	
+	@PostConstruct
+	public void afterPropertiesSet() {
+		StringBuilder encoded = new StringBuilder();
+		if (!StringUtils.isEmpty(getCdnDomain())) {
+			encoded.append("//").append(getCdnDomain());
+		}
+
+		if (!StringUtils.isEmpty(getContextPath())) {
+			encoded.append(getContextPath());
+		}
+
+		if (!StringUtils.isEmpty(getUriPrefix())) {
+			encoded.append(getUriPrefix());
+		}
+		
+		deliveryPrefix = encoded.toString();
+		
+		localPathPrefix = getContextPath() + getUriPrefix();
 	}
 	
 	/**

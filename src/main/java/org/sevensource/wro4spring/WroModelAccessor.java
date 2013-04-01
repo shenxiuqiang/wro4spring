@@ -6,11 +6,14 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.sevensource.wro4spring.WroContextSupport.ContextTemplate;
 import org.sevensource.wro4spring.wro4j.development.GroupPerFileModelTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ro.isdc.wro.config.Context;
 import ro.isdc.wro.http.support.ServletContextAttributeHelper;
 import ro.isdc.wro.manager.WroManager;
 import ro.isdc.wro.model.WroModel;
@@ -27,14 +30,14 @@ public class WroModelAccessor implements IWroModelAccessor {
 	private HttpServletRequest request;
 	private WroContextSupport wroContextSupport;
 	private ServletContextAttributeHelper servletContextAttributeHelper;
-
-	private boolean isDevelopment = true;
+	private WroDeliveryConfiguration wroDeliveryConfiguration;
 	
 	public WroModelAccessor() {
 	}
 	
-	public WroModelAccessor(HttpServletRequest request, WroContextSupport wroContextSupport) {
+	public WroModelAccessor(HttpServletRequest request, WroDeliveryConfiguration wroDeliveryConfiguration, WroContextSupport wroContextSupport) {
 		setRequest(request);
+		setWroDeliveryConfiguration(wroDeliveryConfiguration);
 		setWroContextSupport(wroContextSupport);
 	}
 	
@@ -52,7 +55,7 @@ public class WroModelAccessor implements IWroModelAccessor {
 	
 	
 	public List<String> resources(final String groupname,
-			ResourceType resourceType) {
+			final ResourceType resourceType) {
 		final List<String> resources =
 
 		wroContextSupport.doInContext(request, null,
@@ -61,13 +64,28 @@ public class WroModelAccessor implements IWroModelAccessor {
 					@Override
 					public List<String> execute() {
 						return getVersionedResourceUrisByGroupName(groupname,
-										ResourceType.CSS, isDevelopment);
+										resourceType, wroDeliveryConfiguration.isDevelopment());
 					}
 				});
 
 		return resources;
 	}
 	
+	
+	/**
+	 * Builds a URL accoring to the {@link WroDeliveryConfiguration}
+	 * 
+	 * @param uri
+	 *            a resources URI as returned from wro4j
+	 * @return the resources full URL including domain, context path and prefix
+	 * @see WroDeliveryConfiguration#getCdnDomain()
+	 * @see WroDeliveryConfiguration#getContextPath()
+	 * @see WroDeliveryConfiguration#getUriPrefix()
+	 */
+	
+	protected String encodeDeliveryPathIntoUri(String uri) {
+		return wroDeliveryConfiguration.encodeDeliveryInformationIntoUri(uri);
+	}
 	
 	protected List<String> getVersionedResourceUrisByGroupName(String groupName, ResourceType resourceType, boolean isDevelopment) {
 		
@@ -92,8 +110,20 @@ public class WroModelAccessor implements IWroModelAccessor {
 		final List<String> uris = new ArrayList<String>(groupNames.size());
 		
 		for (String renderGroupName : groupNames) {
-			String uri = getWroManager().encodeVersionIntoGroupPath( renderGroupName, resourceType, isDevelopment );
-			uris.add(uri);
+			
+			/**
+			 * WroManager#encodeVersionIntoGroupPath() uses a CacheKey to get the MD5 of the resource being encoded.
+			 * This, in turn initializes, wro4j completly and - if configured - also rewrites URLs in CSS files. Since these
+			 * calculations are relative to the URL being requested, we need to create a URL, which has the same folder depth
+			 * as the final URL that will be served by wro4j. 
+			 */
+			
+			final String directoryName = FilenameUtils.getFullPathNoEndSeparator(renderGroupName + "." + resourceType.toString()); 
+			final String dummyUrl = wroDeliveryConfiguration.encodeLocalPathPrefixIntoUri("a-md5-hash-we-do-not-know-yet/" + directoryName , false);
+			Context.get().setAggregatedFolderPath(dummyUrl);
+			String uri = getWroManager().encodeVersionIntoGroupPath( renderGroupName, resourceType, !isDevelopment );
+			Context.get().setAggregatedFolderPath(null);
+			uris.add( encodeDeliveryPathIntoUri(uri) );
 		}
 		
 		return uris;
@@ -137,5 +167,10 @@ public class WroModelAccessor implements IWroModelAccessor {
 	@Inject
 	public void setWroContextSupport(WroContextSupport wroContextSupport) {
 		this.wroContextSupport = wroContextSupport;
+	}
+	
+	@Inject
+	public void setWroDeliveryConfiguration(WroDeliveryConfiguration wroDeliveryConfiguration) {
+		this.wroDeliveryConfiguration = wroDeliveryConfiguration;
 	}
 }

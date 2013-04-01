@@ -65,7 +65,7 @@ public abstract class AbstractWro4SpringConfiguration {
 
 	
 	/**
-	 * Save {@link WroManagerFactory} and {@link WroConfiguration} in the {@link ServletContext}
+	 * Put {@link WroManagerFactory} and {@link WroConfiguration} in the {@link ServletContext}
 	 * @param wroManagerFactory
 	 * @param wroConfiguration
 	 * @return
@@ -75,7 +75,6 @@ public abstract class AbstractWro4SpringConfiguration {
 		WroContextInitializer initializer = new WroContextInitializer(wroManagerFactory, wroConfiguration);
 		return initializer;
 	}
-	
 	
 	/**
 	 * 
