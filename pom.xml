@@ -9,7 +9,7 @@
 
 	<groupId>org.sevensource</groupId>
 	<artifactId>wro4spring</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Configuration aid to use wro4j with spring</name>
 
@@ -59,7 +59,7 @@
 		<url>http://github.com/sevensource/wro4spring</url>
 		<connection>scm:git:git@github.com:sevensource/wro4spring.git</connection>
 		<developerConnection>scm:git:git@github.com:sevensource/wro4spring.git</developerConnection>
-		<tag>v0.0.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<licenses>
