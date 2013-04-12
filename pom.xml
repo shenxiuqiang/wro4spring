@@ -9,7 +9,7 @@
 
 	<groupId>org.sevensource</groupId>
 	<artifactId>wro4spring</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Configuration aid to use wro4j with spring</name>
 
