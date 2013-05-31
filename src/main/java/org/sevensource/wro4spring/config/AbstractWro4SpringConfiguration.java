@@ -39,6 +39,7 @@ import ro.isdc.wro.model.resource.locator.ServletContextUriLocator;
 import ro.isdc.wro.model.resource.locator.factory.SimpleUriLocatorFactory;
 import ro.isdc.wro.model.resource.locator.factory.UriLocatorFactory;
 import ro.isdc.wro.model.resource.processor.factory.ProcessorsFactory;
+import ro.isdc.wro.model.resource.processor.factory.SimpleProcessorsFactory;
 
 public abstract class AbstractWro4SpringConfiguration {
 
@@ -87,7 +88,11 @@ public abstract class AbstractWro4SpringConfiguration {
 		BaseWroManagerFactory wroManagerFactory = wroManagerFactoryClass().newInstance();
 		wroManagerFactory.setModelFactory(wroModelFactory());
 		wroManagerFactory.setUriLocatorFactory(wroUriLocatorFactory());
-		wroManagerFactory.setProcessorsFactory(createProcessorsFactory());
+		
+		SimpleProcessorsFactory processorsFactory = new SimpleProcessorsFactory();
+		configureProcessorsFactory(processorsFactory);
+		wroManagerFactory.setProcessorsFactory(processorsFactory);
+		
 		wroManagerFactory.setGroupExtractor( groupExtractor() );
 		
 		if(isDevelopment()) {
@@ -153,9 +158,13 @@ public abstract class AbstractWro4SpringConfiguration {
 	}
 	
 	
+	/**
+	 * we're making this available as a bean, so that one can use it ie. in a view
+	 * @return
+	 */
 	@Bean
 	@Scope(value=WebApplicationContext.SCOPE_REQUEST, proxyMode=ScopedProxyMode.INTERFACES)
-	public IWroModelAccessor wroModelUtility() {
+	public IWroModelAccessor wroModelAccessor() {
 		return new WroModelAccessor();
 	}
 	
@@ -233,6 +242,8 @@ public abstract class AbstractWro4SpringConfiguration {
 		return configuration;
 	}
 	
+	protected abstract void configureProcessorsFactory(SimpleProcessorsFactory processorsFactory);
+	
 	/**
 	 * 
 	 * @return wro4j's model file (ie. wro.xml). Can be returned in Spring's
@@ -240,7 +251,6 @@ public abstract class AbstractWro4SpringConfiguration {
 	 * @see DefaultResourceLoader
 	 */
 	protected abstract String getWroFile();
-	protected abstract ProcessorsFactory createProcessorsFactory();
 	protected abstract boolean isDevelopment();
 
 	@Bean

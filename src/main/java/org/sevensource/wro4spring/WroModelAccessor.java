@@ -7,7 +7,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.sevensource.wro4spring.WroContextSupport.ContextTemplate;
 import org.sevensource.wro4spring.wro4j.development.GroupPerFileModelTransformer;
 import org.slf4j.Logger;
@@ -33,6 +32,9 @@ public class WroModelAccessor implements IWroModelAccessor {
 	private WroDeliveryConfiguration wroDeliveryConfiguration;
 	
 	public WroModelAccessor() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("New instance of ModelAccessor");
+		}
 	}
 	
 	public WroModelAccessor(HttpServletRequest request, WroDeliveryConfiguration wroDeliveryConfiguration, WroContextSupport wroContextSupport) {

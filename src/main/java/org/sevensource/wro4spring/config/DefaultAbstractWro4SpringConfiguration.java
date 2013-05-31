@@ -8,7 +8,6 @@ import ro.isdc.wro.extensions.processor.PathPatternProcessorDecorator;
 import ro.isdc.wro.extensions.processor.css.CssLintProcessor;
 import ro.isdc.wro.extensions.processor.css.YUICssCompressorProcessor;
 import ro.isdc.wro.extensions.processor.js.GoogleClosureCompressorProcessor;
-import ro.isdc.wro.model.resource.processor.factory.ProcessorsFactory;
 import ro.isdc.wro.model.resource.processor.factory.SimpleProcessorsFactory;
 import ro.isdc.wro.model.resource.processor.impl.css.CssImportPreProcessor;
 import ro.isdc.wro.model.resource.processor.impl.css.CssUrlRewritingProcessor;
@@ -23,12 +22,8 @@ public abstract class DefaultAbstractWro4SpringConfiguration extends AbstractWro
 	
 	private final static Logger logger = LoggerFactory.getLogger(DefaultAbstractWro4SpringConfiguration.class);
 	
-	/**
-	 * 
-	 * @return
-	 */
-	protected ProcessorsFactory createProcessorsFactory() {
-		SimpleProcessorsFactory processorsFactory = new SimpleProcessorsFactory();
+	@Override
+	protected void configureProcessorsFactory(SimpleProcessorsFactory processorsFactory) {
 
 		//run rewriting before import!
 		processorsFactory.addPreProcessor(new CssUrlRewritingProcessor());
@@ -55,9 +50,6 @@ public abstract class DefaultAbstractWro4SpringConfiguration extends AbstractWro
 					PathPatternProcessorDecorator.exclude(new GoogleClosureCompressorProcessor(CompilationLevel.SIMPLE_OPTIMIZATIONS), "**/*.min.js").getDecoratedObject()
 					);
 		}
-		
-		
-		return processorsFactory;
 	}
 	
 	@Override
